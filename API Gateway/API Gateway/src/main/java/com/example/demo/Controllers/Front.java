@@ -29,7 +29,7 @@ public class Front {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Admin a){
-        //1️⃣  encrypt password
+        //1️⃣  settings encrypt password
         a.setPassword(passwordEncoder.encode(a.getPassword()));
         //2️⃣ saving to db
         adminRepo.save(a);
