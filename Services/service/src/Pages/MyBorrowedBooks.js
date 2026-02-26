@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import {apiBooks, apiUsers} from "../api";
+import { apiBooks, apiUsers } from "../api";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function MyBorrowedBooks() {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
@@ -26,28 +27,34 @@ function MyBorrowedBooks() {
         });
   };
 
-  const handleDelete = (borrowId) => {  // Changed parameter name for clarity
-    if (window.confirm("Are you sure you want to return this book?")) {
-      setDeleteLoading(borrowId);
+  const handleDelete = (borrowId) => {
+    if (!window.confirm("Are you sure you want to return this book?")) return;
 
-      apiUsers
-          .delete(`/borrows/${borrowId}`)
-          .then((res) => {
-            console.log("Deleting...", res.data);
-            setBorrowedBooks(res.data);
-            setDeleteLoading(null);
-            alert("Deleted with borrowID " + borrowId);
-          })
-          .catch(() => {
-            alert("Failed to return the book. Please try again.");
-            setDeleteLoading(null);
-          });
-    }
+    setDeleteLoading(borrowId);
+
+    apiUsers
+        .delete(`/borrows/${borrowId}`)
+        .then(() => {
+          // remove locally (no refetch needed)
+          setBorrowedBooks(prev =>
+              prev.filter(b => b.borrowerId !== borrowId)
+          );
+          toast.success("Book deleted successfully.");
+          setDeleteLoading(null);
+        })
+        .catch(() => {
+          alert("Failed to return the book. Please try again.");
+          setDeleteLoading(null);
+        });
   };
 
   const getDueDateStatus = (dueDate) => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+
     const daysLeft = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
 
     if (daysLeft < 0) return { text: "Overdue", color: "#dc3545" };
@@ -93,36 +100,35 @@ function MyBorrowedBooks() {
 
         <div style={styles.grid}>
           {borrowedBooks.map((book) => {
+            const borrowId = book.borrowerId; // IMPORTANT: must exist in API
             const dueStatus = getDueDateStatus(book.returnDate);
-            const bookId = book.bookId ;
-            const id = book.id;
-            const isDeleting = deleteLoading === bookId;
+            const isDeleting = deleteLoading === borrowId;
 
             return (
-                <div key={id} style={styles.card}>
+                <div key={borrowId} style={styles.card}>
                   <div style={styles.cardHeader}>
-                    <span style={styles.bookId}>#{bookId}</span>
+                <span style={styles.bookId}>
+                  Book name : {book.bookName || book.title || "Unknown"}
+                </span>
+
                     <div style={styles.headerActions}>
                   <span style={{...styles.status, backgroundColor: dueStatus.color}}>
                     {dueStatus.text}
                   </span>
+
                       <button
-                          onClick={() => handleDelete(id)}
+                          onClick={() => handleDelete(borrowId)}
                           disabled={isDeleting}
                           style={styles.deleteButton}
                           title="Return Book"
                       >
-                        {isDeleting ? (
-                            <span style={styles.deleteSpinner}></span>
-                        ) : (
-                            "×"
-                        )}
+                        {isDeleting ? <span style={styles.deleteSpinner}></span> : "×"}
                       </button>
                     </div>
                   </div>
 
                   <div style={styles.memberInfo}>
-                    <span style={styles.memberLabel}>Member</span>
+                    <span style={styles.memberLabel}>Member ID</span>
                     <span style={styles.memberId}>{book.memberId}</span>
                   </div>
 
@@ -130,30 +136,16 @@ function MyBorrowedBooks() {
                     <div style={styles.dateRow}>
                       <span style={styles.dateLabel}>Borrowed</span>
                       <span style={styles.dateValue}>
-                    {new Date(book.borrowDate).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
+                    {new Date(book.borrowDate).toLocaleDateString()}
                   </span>
                     </div>
 
                     <div style={styles.dateRow}>
                       <span style={styles.dateLabel}>Due Date</span>
-                      <span style={{...styles.dateValue, color: dueStatus.color, fontWeight: 500}}>
-                    {new Date(book.returnDate).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
+                      <span style={{...styles.dateValue, color: dueStatus.color}}>
+                    {new Date(book.returnDate).toLocaleDateString()}
                   </span>
                     </div>
-                  </div>
-
-                  <div style={styles.cardFooter}>
-                    <Link to={`/books/${bookId}`} style={styles.viewButton}>
-                      View Book Details →
-                    </Link>
                   </div>
                 </div>
             );

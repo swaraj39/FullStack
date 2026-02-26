@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiBooks } from "../api";
-import "../CSS/Login.css"; // Move styles to separate CSS file
+import "../CSS/Login.css";
+import Sidebar from "./Sidebar"; // Move styles to separate CSS file
 
 function Books() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ function Books() {
       try {
         setLoading(true);
         const response = await apiBooks.get("getBooks");
+        response.data.sort((a,b) => b.stock - a.stock);
         setBooks(response.data);
         setError(null);
       } catch (error) {
@@ -87,25 +89,21 @@ function Books() {
         </div>
     );
   }
-
+  // console.log(loggedUser);
+  const logged = loggedUser.toString().split("@").at(0);
+  // console.log(logged);
   return (
+      <>
+
+        <Sidebar />
       <div className="books-container">
         {/* Header Section */}
         <header className="books-header">
           <div className="header-content">
             <h1 className="page-title">
-              Welcome back{loggedUser ? `, ${loggedUser}` : ""}!
+              Welcome back{loggedUser ? `, ${logged}` : ""}!
             </h1>
             <p className="book-count">{books.length} books available</p>
-          </div>
-
-          <div className="header-actions">
-            <Link to="/borrow" className="btn btn-primary">
-              Borrow Book
-            </Link>
-            <Link to="/my-borrowed" className="btn btn-secondary">
-              My Borrowed Books
-            </Link>
           </div>
         </header>
 
@@ -160,6 +158,7 @@ function Books() {
             </div>
         )}
       </div>
+      </>
   );
 }
 

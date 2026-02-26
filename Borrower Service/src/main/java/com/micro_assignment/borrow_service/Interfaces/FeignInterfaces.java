@@ -11,4 +11,8 @@ public interface FeignInterfaces {
 
     @PutMapping("/updatestock/dec/{id}")
     ResponseEntity<?> decrement(@PathVariable("id") Long id);
+
+
+    @PutMapping("/updatestock/incre/{id}")
+    ResponseEntity<?> increment(@PathVariable("id") Long id);
 }

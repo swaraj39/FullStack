@@ -1,9 +1,12 @@
-import './App.css';
-import BookPage from "./Pages/BookPage";
-import BorrowForm from './Pages/BorrowForm';
-import MyBorrowedBooks from './Pages/MyBorrowedBooks';
-import Login from "./Pages/Login";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+
+import Layout from "./layout/layout";
+import BookPage from "./pages/BookPage";
+import BorrowForm from "./pages/BorrowForm";
+import MyBorrowedBooks from "./pages/MyBorrowedBooks";
+import Login from "./pages/Login";
+
 function App() {
     const isTokenValid = () => {
         const token = localStorage.getItem("token");
@@ -18,33 +21,26 @@ function App() {
     };
 
     const isLoggedIn = isTokenValid();
-  return (
-    <BrowserRouter>
-        <Routes>
 
-            <Route
-                path="/login"
-                element={<Login />} />
+    return (
+        <BrowserRouter>
+            <Toaster position="top-right" reverseOrder={false} />
+            <Routes>
+                <Route path="/login" element={<Login />} />
 
-            <Route
-                path="/book"
-                element={isLoggedIn ? <BookPage /> : <Login />}/>
+                {isLoggedIn && (
+                    <Route element={<Layout />}>
+                        <Route path="/" element={<BookPage />} />
+                        <Route path="/book" element={<BookPage />} />
+                        <Route path="/borrow" element={<BorrowForm />} />
+                        <Route path="/my-borrowed" element={<MyBorrowedBooks />} />
+                    </Route>
+                )}
 
-            <Route path="/" element={isLoggedIn ? <BookPage/> :  <Login />} />
-
-            <Route
-                path="/borrow"
-                element={isLoggedIn ? <BorrowForm /> : <Login />}
-            />
-
-            <Route
-                path="/my-borrowed"
-                element={isLoggedIn ? <MyBorrowedBooks /> : <Login />}
-            />
-
-        </Routes>
-    </BrowserRouter>
-  );
+                {!isLoggedIn && <Route path="*" element={<Login />} />}
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;

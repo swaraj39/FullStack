@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {apiBooks, apiUsers} from "../api";
+import toast from "react-hot-toast";
 
 function BorrowForm() {
   const [formData, setFormData] = useState({
@@ -22,7 +23,7 @@ function BorrowForm() {
   useEffect(() => {
     setLoading(true);
 
-    apiBooks.get("/getBooks")
+    apiBooks.get("/getBooks/inStock")
         .then((res) => {
           setBooks(res.data);
           console.log(res.data);
@@ -48,6 +49,7 @@ function BorrowForm() {
           bookId: Number(formData.bookId)
         })
         .then(() => {
+          toast.success("Book borrowed successfully!");
           setMessage("Book borrowed successfully!");
           setFormData({ memberId: "", bookId: "" });
           setTimeout(() => setMessage(null), 3000);
@@ -121,19 +123,9 @@ function BorrowForm() {
           </button>
         </form>
 
-        {message && (
-            <div style={styles.messageSuccess}>
-              <span style={styles.messageIcon}>✓</span>
-              {message}
-            </div>
-        )}
 
-        {error && (
-            <div style={styles.messageError}>
-              <span style={styles.messageIcon}>⚠</span>
-              {error}
-            </div>
-        )}
+
+
       </div>
   );
 }

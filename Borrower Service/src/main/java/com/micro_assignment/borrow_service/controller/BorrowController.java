@@ -59,7 +59,9 @@ public class BorrowController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteBorrow(@PathVariable Long id) {
+        Long book_id = borrowService.getBorrowById(id).getBookId();
         borrowService.deleteBorrow(id);
+        feignInterfaces.increment(book_id);
         return ResponseEntity.ok(borrowService.getAllBorrows());
     }
 }

@@ -13,7 +13,7 @@ public class JwtGlobalFilter implements GlobalFilter {
 
     @Autowired
     private JwtUtil jwtUtil;
-
+    
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
